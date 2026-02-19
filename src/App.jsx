@@ -637,18 +637,43 @@ function TeamPanel({ num, question, onAnswer, disabled, progress, flash, accent 
     <div style={{
       flex:1, display:"flex", flexDirection:"column", gap:10,
       padding:"14px 12px",
-      background: flash==="correct"?`${accent}2a`
-               : flash==="wrong"  ?"rgba(200,30,30,0.22)"
-               : `linear-gradient(160deg,${accent}12,rgba(6,15,30,0.94))`,
+      background: `linear-gradient(160deg,${accent}12,rgba(6,15,30,0.94))`,
       borderRadius:20, border:`2px solid ${accent}44`,
-      position:"relative", overflow:"hidden", transition:"background 0.3s",
+      position:"relative", overflow:"hidden",
       boxShadow:`0 0 30px ${accent}18, inset 0 0 30px rgba(0,0,0,0.3)`,
+      animation: flash==="wrong" ? "wrongShake 0.35s ease" : "none",
     }}>
-      {flash&&(
+
+      {/* ✅ Correct: grote groene vink die snel verschijnt en verdwijnt */}
+      {flash==="correct" && (
         <div style={{
-          position:"absolute",inset:0,borderRadius:18,pointerEvents:"none",
-          boxShadow:`inset 0 0 0 5px ${flash==="correct"?"#2ecc71":"#e74c3c"}`,
-          animation:"flashRing 0.5s ease-out forwards",
+          position:"absolute", inset:0, borderRadius:18,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          pointerEvents:"none", zIndex:10,
+          background:"rgba(20,180,80,0.18)",
+          animation:"correctFade 0.55s ease-out forwards",
+        }}>
+          <svg viewBox="0 0 100 100" width="120" height="120"
+               style={{filter:"drop-shadow(0 0 18px #2ecc71)", animation:"checkPop 0.35s cubic-bezier(0.34,1.7,0.64,1) forwards"}}>
+            <circle cx="50" cy="50" r="46" fill="rgba(46,204,113,0.25)" stroke="#2ecc71" strokeWidth="4"/>
+            <polyline points="22,52 42,72 78,30"
+              fill="none" stroke="#2ecc71" strokeWidth="9"
+              strokeLinecap="round" strokeLinejoin="round"
+              style={{
+                strokeDasharray:90,
+                strokeDashoffset:0,
+                animation:"drawCheck 0.25s 0.05s ease-out both",
+              }}/>
+          </svg>
+        </div>
+      )}
+
+      {/* ❌ Wrong: subtiele rode rand, geen achtergrond (verwarring vermijden) */}
+      {flash==="wrong" && (
+        <div style={{
+          position:"absolute", inset:0, borderRadius:18, pointerEvents:"none",
+          boxShadow:"inset 0 0 0 4px rgba(220,50,50,0.7)",
+          animation:"flashRing 0.35s ease-out forwards",
         }}/>
       )}
 
@@ -765,6 +790,10 @@ export default function BobsleeGame() {
         @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@700;900&display=swap');
         @keyframes snowfall{from{transform:translateY(-8px) rotate(0);opacity:.9}to{transform:translateY(100vh) rotate(360deg);opacity:.15}}
         @keyframes flashRing{from{opacity:1}to{opacity:0}}
+        @keyframes correctFade{0%{opacity:1}70%{opacity:1}100%{opacity:0}}
+        @keyframes checkPop{0%{transform:scale(0.4);opacity:0}100%{transform:scale(1);opacity:1}}
+        @keyframes drawCheck{from{stroke-dashoffset:90}to{stroke-dashoffset:0}}
+        @keyframes wrongShake{0%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(4px)}100%{transform:translateX(0)}}
         @keyframes confettiFall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
         @keyframes winPop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
         @keyframes shimmer{0%,100%{opacity:.7}50%{opacity:1}}
