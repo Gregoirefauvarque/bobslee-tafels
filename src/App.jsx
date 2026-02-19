@@ -351,60 +351,58 @@ function Lane({ progress, color, hlColor, label, accent }) {
 }
 
 // ── Number Pad ────────────────────────────────────────────────────────────────
-// Clear 1 vs 7: 1 has serifs + underline styling; 7 has a crossbar
-const DIGIT_LABELS = {
-  1: "1̲",   // won't render well; we handle in style below
-  7: "7",
-};
-
 function NumberPad({ onAnswer, disabled, accent }) {
   const [input, setInput] = useState("");
   const press = n => { if (!disabled) setInput(p=>(p+n).slice(0,3)); };
   const submit = () => { if (!input||disabled) return; onAnswer(parseInt(input)); setInput(""); };
   const del = () => setInput(p=>p.slice(0,-1));
 
-  // Each digit button — special styling for 1 and 7
+  // onPointerDown fires immediately on both touch AND mouse, no delay
+  // stopPropagation prevents the other team's panel from stealing the event
+  const makeHandler = (fn) => (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    fn();
+  };
+
   const DigitBtn = ({ n }) => {
     const is1 = n === 1;
     const is7 = n === 7;
     return (
-      <button onClick={()=>press(n)} disabled={disabled} style={{
-        height:64, borderRadius:14, border:"none",
-        background:"rgba(255,255,255,0.1)",
-        color:"#e8f4ff",
-        cursor:disabled?"not-allowed":"pointer",
-        boxShadow:disabled?"none":"0 4px 0 rgba(0,0,0,0.45)",
-        transition:"all 0.1s",
-        opacity:disabled?0.38:1,
-        position:"relative",
-        overflow:"hidden",
-        padding:0,
-      }}>
-        {/* Special: 1 gets a serif-style bottom foot + left top */}
+      <button
+        onPointerDown={makeHandler(()=>press(n))}
+        disabled={disabled}
+        style={{
+          height:64, borderRadius:14, border:"none",
+          background:"rgba(255,255,255,0.1)",
+          color:"#e8f4ff",
+          cursor:disabled?"not-allowed":"pointer",
+          boxShadow:disabled?"none":"0 4px 0 rgba(0,0,0,0.45)",
+          transition:"all 0.1s",
+          opacity:disabled?0.38:1,
+          position:"relative",
+          overflow:"hidden",
+          padding:0,
+          touchAction:"manipulation",
+          userSelect:"none",
+          WebkitUserSelect:"none",
+        }}>
         {is1 && (
-          <svg viewBox="0 0 40 44" width="40" height="44" style={{display:"block",margin:"0 auto"}}>
-            {/* Top-left serif stroke */}
-            <line x1="12" y1="8" x2="20" y2="8" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5" strokeLinecap="round"/>
-            {/* Vertical stem */}
-            <line x1="20" y1="8" x2="20" y2="36" stroke="#e8f4ff" strokeWidth="5" strokeLinecap="round"/>
-            {/* Bottom serif left */}
+          <svg viewBox="0 0 40 44" width="40" height="44" style={{display:"block",margin:"0 auto",pointerEvents:"none"}}>
+            <line x1="12" y1="8"  x2="20" y2="8"  stroke="rgba(255,255,255,0.5)" strokeWidth="2.5" strokeLinecap="round"/>
+            <line x1="20" y1="8"  x2="20" y2="36" stroke="#e8f4ff" strokeWidth="5" strokeLinecap="round"/>
             <line x1="12" y1="36" x2="28" y2="36" stroke="#e8f4ff" strokeWidth="4" strokeLinecap="round"/>
           </svg>
         )}
-        {/* Special: 7 gets a crossbar */}
         {is7 && (
-          <svg viewBox="0 0 40 44" width="40" height="44" style={{display:"block",margin:"0 auto"}}>
-            {/* Top horizontal */}
-            <line x1="10" y1="8" x2="30" y2="8" stroke="#e8f4ff" strokeWidth="5" strokeLinecap="round"/>
-            {/* Crossbar */}
+          <svg viewBox="0 0 40 44" width="40" height="44" style={{display:"block",margin:"0 auto",pointerEvents:"none"}}>
+            <line x1="10" y1="8"  x2="30" y2="8"  stroke="#e8f4ff" strokeWidth="5" strokeLinecap="round"/>
             <line x1="14" y1="22" x2="24" y2="22" stroke="rgba(255,255,255,0.65)" strokeWidth="3" strokeLinecap="round"/>
-            {/* Diagonal down-right */}
-            <line x1="30" y1="8" x2="18" y2="36" stroke="#e8f4ff" strokeWidth="5" strokeLinecap="round"/>
+            <line x1="30" y1="8"  x2="18" y2="36" stroke="#e8f4ff" strokeWidth="5" strokeLinecap="round"/>
           </svg>
         )}
-        {/* All other digits */}
         {!is1 && !is7 && (
-          <span style={{fontSize:30,fontWeight:900,fontFamily:"'Bangers',cursive",letterSpacing:1}}>
+          <span style={{fontSize:30,fontWeight:900,fontFamily:"'Bangers',cursive",letterSpacing:1,pointerEvents:"none"}}>
             {n}
           </span>
         )}
@@ -412,22 +410,31 @@ function NumberPad({ onAnswer, disabled, accent }) {
     );
   };
 
-  const ActionBtn = ({ch,onClick,special}) => (
-    <button onClick={onClick} disabled={disabled} style={{
-      height:64, borderRadius:14, border:"none",
-      background: special==="ok"
-        ? (input?`linear-gradient(145deg,${accent},${accent}cc)`:"rgba(255,255,255,0.05)")
-        : "rgba(255,255,255,0.1)",
-      color:"#e8f4ff", fontSize:special==="ok"?28:22, fontWeight:900,
-      cursor:(disabled||(special==="ok"&&!input))?"not-allowed":"pointer",
-      boxShadow:(disabled||(special==="ok"&&!input))?"none":"0 4px 0 rgba(0,0,0,0.45)",
-      transition:"all 0.1s", fontFamily:"'Bangers',cursive",
-      opacity:(disabled||(special==="ok"&&!input))?0.38:1,
-    }}>{ch}</button>
+  const ActionBtn = ({ch, onPress, special}) => (
+    <button
+      onPointerDown={makeHandler(onPress)}
+      disabled={disabled}
+      style={{
+        height:64, borderRadius:14, border:"none",
+        background: special==="ok"
+          ? (input?`linear-gradient(145deg,${accent},${accent}cc)`:"rgba(255,255,255,0.05)")
+          : "rgba(255,255,255,0.1)",
+        color:"#e8f4ff", fontSize:special==="ok"?28:22, fontWeight:900,
+        cursor:(disabled||(special==="ok"&&!input))?"not-allowed":"pointer",
+        boxShadow:(disabled||(special==="ok"&&!input))?"none":"0 4px 0 rgba(0,0,0,0.45)",
+        transition:"all 0.1s", fontFamily:"'Bangers',cursive",
+        opacity:(disabled||(special==="ok"&&!input))?0.38:1,
+        touchAction:"manipulation",
+        userSelect:"none",
+        WebkitUserSelect:"none",
+      }}>{ch}</button>
   );
 
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:8,width:"100%"}}>
+    <div
+      style={{display:"flex",flexDirection:"column",gap:8,width:"100%"}}
+      onPointerDown={e=>e.stopPropagation()}
+    >
       <div style={{
         background:"rgba(0,0,0,0.42)", border:`2px solid ${accent}77`,
         borderRadius:12, padding:"10px 0", textAlign:"center",
@@ -438,9 +445,9 @@ function NumberPad({ onAnswer, disabled, accent }) {
       }}>{input||"···"}</div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
         {[7,8,9,4,5,6,1,2,3].map(n=><DigitBtn key={n} n={n}/>)}
-        <ActionBtn ch="⌫" onClick={del}/>
+        <ActionBtn ch="⌫" onPress={del}/>
         <DigitBtn n={0}/>
-        <ActionBtn ch="✓" onClick={submit} special="ok"/>
+        <ActionBtn ch="✓" onPress={submit} special="ok"/>
       </div>
     </div>
   );
@@ -750,6 +757,9 @@ export default function BobsleeGame() {
       display:"flex", flexDirection:"column",
       padding:"8px", boxSizing:"border-box",
       position:"relative", overflow:"hidden",
+      touchAction:"none",
+      userSelect:"none",
+      WebkitUserSelect:"none",
     }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@700;900&display=swap');
@@ -759,6 +769,8 @@ export default function BobsleeGame() {
         @keyframes winPop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
         @keyframes shimmer{0%,100%{opacity:.7}50%{opacity:1}}
         @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+        * { -webkit-tap-highlight-color: transparent; }
+        button { touch-action: manipulation; }
         button:not(:disabled):hover{filter:brightness(1.2);transform:translateY(-2px)!important}
         button:not(:disabled):active{transform:translateY(2px)!important;box-shadow:none!important}
       `}</style>
