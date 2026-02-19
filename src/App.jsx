@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 
-const TOTAL_GATES = 5;
+const TOTAL_GATES = 10;
 const ALL_TABLES  = [2,3,4,5,6,7,8,9,10];
 const rnd = arr => arr[Math.floor(Math.random()*arr.length)];
 
